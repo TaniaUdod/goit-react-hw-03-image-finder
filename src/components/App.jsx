@@ -4,7 +4,6 @@ import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
 import { Button } from './Button/Button';
-import { Modal } from './Modal/Modal';
 import { Notify } from 'notiflix';
 import { AppContainer } from './App.styled';
 
@@ -16,7 +15,6 @@ export class App extends Component {
     isLoading: false,
     error: '',
     isLoadMore: false,
-    url: '',
   };
 
   componentDidUpdate(_, prevState) {
@@ -68,10 +66,6 @@ export class App extends Component {
     });
   };
 
-  openModal = url => {
-    this.setState({ url });
-  };
-
   loadMore = () => {
     this.setState(prevState => ({
       currentPage: prevState.currentPage + 1,
@@ -79,13 +73,12 @@ export class App extends Component {
   };
 
   render() {
-    const { images, isLoading, isLoadMore, url, error } = this.state;
+    const { images, isLoading, isLoadMore, error } = this.state;
     return (
       <AppContainer>
         {isLoading && <Loader />}
         <Searchbar onSubmit={this.handleSubmit} />
-        <ImageGallery images={images} openModal={this.openModal} />
-        {url && <Modal closeModal={this.openModal} url={url} />}
+        <ImageGallery images={images} />
         {isLoadMore && <Button onClick={this.loadMore} />}
         {error && (
           <p style={{ textAlign: 'center', margin: 'auto' }}>
