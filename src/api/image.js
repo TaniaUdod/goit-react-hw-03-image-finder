@@ -9,8 +9,3 @@ export const getImages = async (query, page) => {
   );
   return response.data;
 };
-
-export const newData = imagesArray =>
-  imagesArray.map(({ id, tags, webformatURL, largeImageURL }) => {
-    return { id, tags, webformatURL, largeImageURL };
-  });

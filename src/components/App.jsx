@@ -1,9 +1,11 @@
 import { Component } from 'react';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Searchbar } from './Searchbar/Searchbar';
-import { getImages, newData } from 'api/image';
+import { getImages } from 'api/image';
 import { Loader } from './Loader/Loader';
 import { Button } from './Button/Button';
+import { Notify } from 'notiflix';
+import { AppContainer } from './App.styled';
 
 export class App extends Component {
   state = {
@@ -16,29 +18,39 @@ export class App extends Component {
   };
 
   componentDidUpdate(_, prevState) {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.currentPage !== this.state.currentPage
-    ) {
-      this.handleImages(this.state.query, this.state.currentPage);
+    const { query, currentPage } = this.state;
+    if (prevState.query !== query || prevState.currentPage !== currentPage) {
+      this.handleImages(query, currentPage);
     }
   }
 
   handleImages = async () => {
     const { query, currentPage } = this.state;
+
     try {
       this.setState({ isLoading: true });
       const data = await getImages(query, currentPage);
-      const newImages = newData(data.hits);
 
-      this.setState(state => ({
-        images: [...state.images, ...newImages],
+      if (!data.hits.length) {
+        Notify.failure(
+          `Sorry, there are no images matching your search query. Please try again.`
+        );
+        this.setState({ isLoading: false });
+        return;
+      }
+
+      if (currentPage === 1) {
+        Notify.success(`Hooray! We found ${data.totalHits} images.`);
+      }
+
+      this.setState(prevState => ({
+        images: [...prevState.images, ...data.hits],
         isLoading: false,
         error: '',
-        totalPages: Math.ceil(data.totalHits / 12),
+        totalPages: currentPage < Math.ceil(data.totalHits / 12),
       }));
     } catch (error) {
-      this.setState({ error: error.response.data, isLoading: false });
+      this.setState({ error: error.message, isLoading: false });
     }
   };
 
@@ -59,14 +71,14 @@ export class App extends Component {
   render() {
     const { images, isLoading, totalPages, currentPage } = this.state;
     return (
-      <div>
+      <AppContainer>
         <Searchbar onSubmit={this.handleSubmit} />
         {isLoading && <Loader />}
         <ImageGallery images={images} />
         {images.length > 0 && totalPages !== currentPage && !isLoading && (
           <Button onClick={this.loadMore} />
         )}
-      </div>
+      </AppContainer>
     );
   }
 }
