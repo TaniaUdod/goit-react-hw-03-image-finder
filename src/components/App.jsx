@@ -1,9 +1,10 @@
 import { Component } from 'react';
-import { ImageGallery } from './ImageGallery/ImageGallery';
-import { Searchbar } from './Searchbar/Searchbar';
 import { getImages } from 'api/image';
+import { Searchbar } from './Searchbar/Searchbar';
+import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
 import { Button } from './Button/Button';
+import { Modal } from './Modal/Modal';
 import { Notify } from 'notiflix';
 import { AppContainer } from './App.styled';
 
@@ -14,7 +15,8 @@ export class App extends Component {
     currentPage: 1,
     isLoading: false,
     error: '',
-    totalPages: 0,
+    isLoadMore: false,
+    url: '',
   };
 
   componentDidUpdate(_, prevState) {
@@ -35,7 +37,7 @@ export class App extends Component {
         Notify.failure(
           `Sorry, there are no images matching your search query. Please try again.`
         );
-        this.setState({ isLoading: false });
+        this.setState({ isLoading: false, isLoadMore: false });
         return;
       }
 
@@ -47,7 +49,7 @@ export class App extends Component {
         images: [...prevState.images, ...data.hits],
         isLoading: false,
         error: '',
-        totalPages: currentPage < Math.ceil(data.totalHits / 12),
+        isLoadMore: currentPage < Math.ceil(data.totalHits / 12),
       }));
     } catch (error) {
       this.setState({ error: error.message, isLoading: false });
@@ -55,11 +57,19 @@ export class App extends Component {
   };
 
   handleSubmit = query => {
+    if (this.state.query === query) {
+      return;
+    }
+
     this.setState({
       images: [],
       currentPage: 1,
       query: query,
     });
+  };
+
+  openModal = url => {
+    this.setState({ url });
   };
 
   loadMore = () => {
@@ -69,14 +79,18 @@ export class App extends Component {
   };
 
   render() {
-    const { images, isLoading, totalPages, currentPage } = this.state;
+    const { images, isLoading, isLoadMore, url, error } = this.state;
     return (
       <AppContainer>
-        <Searchbar onSubmit={this.handleSubmit} />
         {isLoading && <Loader />}
-        <ImageGallery images={images} />
-        {images.length > 0 && totalPages !== currentPage && !isLoading && (
-          <Button onClick={this.loadMore} />
+        <Searchbar onSubmit={this.handleSubmit} />
+        <ImageGallery images={images} openModal={this.openModal} />
+        {url && <Modal closeModal={this.openModal} url={url} />}
+        {isLoadMore && <Button onClick={this.loadMore} />}
+        {error && (
+          <p style={{ textAlign: 'center', margin: 'auto' }}>
+            Sorry. {error} 😭
+          </p>
         )}
       </AppContainer>
     );
