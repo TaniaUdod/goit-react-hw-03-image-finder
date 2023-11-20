@@ -45,12 +45,13 @@ export class App extends Component {
 
       this.setState(prevState => ({
         images: [...prevState.images, ...data.hits],
-        isLoading: false,
         error: '',
         isLoadMore: currentPage < Math.ceil(data.totalHits / 12),
       }));
     } catch (error) {
-      this.setState({ error: error.message, isLoading: false });
+      this.setState({ error: error.message });
+    } finally {
+      this.setState({ isLoading: false });
     }
   };
 
@@ -79,7 +80,7 @@ export class App extends Component {
         {isLoading && <Loader />}
         <Searchbar onSubmit={this.handleSubmit} />
         <ImageGallery images={images} />
-        {isLoadMore && <Button onClick={this.loadMore} />}
+        {isLoadMore && !isLoading && <Button onClick={this.loadMore} />}
         {error && (
           <p style={{ textAlign: 'center', margin: 'auto' }}>
             Sorry. {error} 😭
