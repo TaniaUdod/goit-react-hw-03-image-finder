@@ -6,6 +6,7 @@ import { Loader } from './Loader/Loader';
 import { Button } from './Button/Button';
 import { Notify } from 'notiflix';
 import { AppContainer } from './App.styled';
+import { ScrollUpButton } from './ScrollToTop/ScrollToTop.styled';
 
 export class App extends Component {
   state = {
@@ -86,6 +87,7 @@ export class App extends Component {
             Sorry. {error} 😭
           </p>
         )}
+        <ScrollUpButton smooth />
       </AppContainer>
     );
   }
